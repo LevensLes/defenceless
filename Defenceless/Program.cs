@@ -13,6 +13,7 @@ namespace Defenceless
         static void Main(string[] args)
         {
             Console.Title = "Windows Defender Disabler by LevensLes#4590";
+
             menu();
 
         }
@@ -43,7 +44,7 @@ namespace Defenceless
                             Console.WriteLine(
                                 "Services disabled, restart is required to take effect.\n");
 
-                    
+
                             Console.WriteLine("Would you like to restart now ? (y/n)");
                             string input2 = Console.ReadLine();
                             if (input2.ToLower().Contains("y"))
@@ -75,44 +76,47 @@ namespace Defenceless
                     }
                 case "enable":
                     {
-                        if (Registry.GetValue(
-                                @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection",
-                                "DisableRealtimeMonitoring", null) == null)
+                        try
                         {
-                            Console.WriteLine("Already Enabled");
+                            string keyName =
+                                @"SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection";
+                            using (RegistryKey key = Registry.LocalMachine.OpenSubKey(keyName, true))
+                            {
+                                key?.DeleteValue("DisableRealtimeMonitoring");
+                            }
+
+                            string keyName2 =
+                                @"SOFTWARE\Policies\Microsoft\Windows Defender";
+                            using (RegistryKey key = Registry.LocalMachine.OpenSubKey(keyName2, true))
+                            {
+                                key?.DeleteValue("DisableAntiSpyware");
+                            }
+                        }
+                        catch (ArgumentException e)
+                        {
+                            //Console.WriteLine(e.Message + "\n");
+                            Console.WriteLine("Already enabled");
+                        }
+
+
+                        Console.WriteLine("Would you like to restart now ? (y/n)");
+                        string input2 = Console.ReadLine();
+                        if (input2.ToLower().Contains("y"))
+                        {
+                            Process.Start("shutdown",
+                                "/r /t 0");
+                            Console.Read();
+                        }
+                        else if (input2.ToLower().Contains("n"))
+                        {
+
                         }
                         else
                         {
-                            Registry.LocalMachine.CreateSubKey(
-                                @"SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection");
-                            Registry.SetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender",
-                                "DisableAntiSpyware", "0", RegistryValueKind.DWord);
-                            Registry.SetValue(
-                                @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection",
-                                "DisableRealtimeMonitoring", "0", RegistryValueKind.DWord);
-
-                            Console.WriteLine(
-                                "Services enabled, restart is required to take effect.");
-
-                            Console.WriteLine();
-                            Console.WriteLine("Would you like to restart now ? (y/n)");
-                            string input2 = Console.ReadLine();
-                            if (input2.ToLower().Contains("y"))
-                            {
-                                Process.Start("shutdown",
-                                    "/r /t 0");
-                                Console.Read();
-                            }
-                            else if (input2.ToLower().Contains("n"))
-                            {
-
-                            }
-                            else
-                            {
-                                Console.WriteLine("Invalid choice");
-                            }
+                            Console.WriteLine("Invalid choice");
                         }
 
+                       
 
                         Console.WriteLine();
                         Console.WriteLine("Press any key to continue");
